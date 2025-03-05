@@ -53,6 +53,7 @@
             gap: 2rem;
             margin-bottom: 2rem;
             margin-top: 2rem;
+            margin-left:-0.3rem;
         }
         .tile {
             width: 6rem;
@@ -99,10 +100,12 @@
 
         .controls {
             margin-top: 2rem;
+            margin-left:-0.3rem;
         }
 
         .input-wrapper {
             display:flex;
+            margin-left:-0.3rem;
         }
         .btn, input {
             padding: 1rem 2rem;
@@ -162,7 +165,7 @@
 
         @media only screen and (max-width: 1000px) {
             html {
-                font-size: 13px;
+                font-size: 12px;
             }
 
             .word-area {
@@ -293,7 +296,7 @@
         if (input.length === 9) {
             localStorage.setItem("scrambler", input);
             letters = input.split('');
-            usedLetters.clear();
+            usedLetters = [];
             createGrid();
             resetWord();
         } else {
