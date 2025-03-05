@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scrambler. A nine letter word jumble helper</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap" rel="stylesheet">
+    <style>
+        html {
+            font-size: 16px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Outfit", sans-serif;
+            font-optical-sizing: auto;
+            font-weight: 800;
+            font-style: normal;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 1.5rem;
+            background-color: #f4f4f4;
+            box-sizing: border-box;
+        }
+
+
+
+        h1 {
+            font-size: 4rem;
+            letter-spacing: -0.02em;
+            margin-bottom: 0rem;
+            margin-top: 0px;
+        }
+
+        p {
+            font-weight: 500;
+            font-size: 1.3rem;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(3, 6rem);
+            gap: 2rem;
+            margin-bottom: 2rem;
+            margin-top: 2rem;
+        }
+        .tile {
+            width: 6rem;
+            height: 6rem;
+            background-color: #ffeb3b;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: 900;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 0.2rem solid black;
+            border-radius: 0.7rem;
+            box-shadow: 0.3rem 0.3rem 0px black;
+
+            -webkit-touch-callout: none; /* iOS Safari */
+              -webkit-user-select: none; /* Safari */
+               -khtml-user-select: none; /* Konqueror HTML */
+                 -moz-user-select: none; /* Old versions of Firefox */
+                  -ms-user-select: none; /* Internet Explorer/Edge */
+                      user-select: none;
+        }
+        .tile.used {
+            background-color: #ccc;
+            cursor: default;
+        }
+
+        .tile:not(.used):hover {
+            box-shadow: 0.6rem 0.6rem 0px black;
+        }
+
+        .word-area {
+            display: flex;
+            gap: 1rem;
+            min-height: 6rem;
+            transition: all 0.3s ease;
+            margin-top: 1rem;
+        }
+
+        .word-area.solved .tile {
+            background-color: #81ff3b;
+        }
+
+        .controls {
+            margin-top: 2rem;
+        }
+        .btn, input {
+            padding: 1rem 2rem;
+            font-size: 1.6rem;
+            margin: 1rem;
+            border: 0.2rem solid black;
+            border-radius: 0.7rem;
+            box-shadow: 0.3rem 0.3rem 0px black;
+            transition: all 0.2s;
+            
+        }
+
+        .btn {
+            cursor: pointer;
+        }
+
+        .btn:hover {
+            color: white;
+            background-color: black;
+            box-shadow: 0.6rem 0.6rem 0px black;
+            border-color: white;
+        }
+
+        input {
+            width: 100%;
+            max-width: 22rem;
+            text-align: center;
+            text-transform: uppercase;
+            color: black;
+        }
+
+        input:focus {
+            outline:none;
+        }
+
+        .credits {
+            font-weight: 500;
+            font-size: 1rem;
+        }
+
+        .credits a {
+            color: black;
+            text-underline-offset: 0.3em;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        @media only screen and (max-width: 1000px) {
+            html {
+                font-size: 14px;
+            }
+
+            .word-area {
+                gap: 0.5rem;
+                border-radius: 0.8rem;
+                padding: 0rem 2rem;
+                background-color: white;
+            }
+
+            .word-area.solved {
+                background-color: #81ff3b;
+            }
+
+            .word-area .tile {
+                width: auto;
+                background: none;
+                border: none;
+                box-shadow: none!important;
+                font-size: 3.5rem;
+            }
+        }
+
+        @media (hover: none) { 
+            .tile, .btn, input {
+                touch-action: manipulation;
+            }
+        }
+
+    </style>
+</head>
+
+<body>
+    <h1>Scrambler.</h1>
+    <p>A 9 letter word jumble helper.</p>
+    <div class="input-wrapper">
+        <input type="text" id="letterInput" maxlength="9" placeholder="Enter 9 letters" spellcheck="false" />
+        <button class="btn" onclick="setLetters()">Set</button>
+    </div>
+    <div class="grid" id="grid"></div>
+    <div class="word-area" id="wordArea"></div>
+    <div class="controls">
+        <button class="btn" onclick="scrambleGrid()">Scramble</button>
+        <button class="btn" onclick="resetWord()">Reset</button>
+    </div>
+    <p class="credits">Made with ❤ by <a href="https://blam.cam/" target="_blank">CamBamThanksMan</a></p>
+
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+    <script>
+    let letters = ['A', 'A', 'R', 'D', 'V', 'A', 'R', 'K', 'S'];
+
+    if (localStorage.getItem("scrambler") != null && localStorage.getItem("scrambler").length == 9) {
+        letters = localStorage.getItem("scrambler").split('');
+        document.getElementById('letterInput').value = localStorage.getItem("scrambler");
+    }
+
+    let usedLetters = [];
+
+    function createGrid() {
+        const grid = document.getElementById('grid');
+        grid.innerHTML = '';
+        letters.forEach(letter => {
+            const tile = document.createElement('div');
+            tile.classList.add('tile');
+            tile.textContent = letter;
+            tile.onclick = () => selectTile(tile);
+            grid.appendChild(tile);
+        });
+        updateGrid();
+    }
+
+    function selectTile(tile) {
+        if (tile.classList.contains('used')) return;
+        tile.classList.add('used');
+        usedLetters.push(tile.textContent);
+        const wordArea = document.getElementById('wordArea');
+        const wordTile = document.createElement('div');
+        wordTile.classList.add('tile', 'fade-in');
+        wordTile.textContent = tile.textContent;
+        wordTile.onclick = () => removeTile(wordTile, tile);
+        wordArea.appendChild(wordTile);
+        checkWord();
+    }
+
+    function removeTile(wordTile) {
+        const letter = wordTile.textContent;
+        wordTile.remove();
+        usedLetters = removeItem(usedLetters, letter);
+        updateGrid();
+        unSolve();
+    }
+
+    function updateGrid() {
+        var tiles = Array.from(document.querySelectorAll('.grid .tile'));
+        tiles.forEach(tile => {
+            tile.classList.remove('used');
+        });
+        usedLetters.forEach(letter => {
+            tiles.some(function(tile, index) {
+                if (tile.textContent == letter) {
+                    tile.classList.add('used');
+                    tiles = removeIndex(tiles, index);
+                    return true;
+                } else {
+                    return false;
+                }
+            });
+        });
+    }
+
+    function scrambleGrid() {
+        letters.sort(() => Math.random() - 0.5);
+        createGrid();
+    }
+
+    function resetWord() {
+        document.getElementById('wordArea').innerHTML = '';
+        usedLetters = [];
+        createGrid();
+        unSolve();
+    }
+
+    function setLetters() {
+        const input = document.getElementById('letterInput').value.toUpperCase();
+        if (input.length === 9) {
+            localStorage.setItem("scrambler", input);
+            letters = input.split('');
+            usedLetters.clear();
+            createGrid();
+            resetWord();
+        } else {
+            alert('Please enter exactly 9 letters.');
+        }
+    }
+
+    function checkWord() {
+        if (usedLetters.length == 9) {
+            fetch('https://api.dictionaryapi.dev/api/v2/entries/en/' + usedLetters.join(""))
+              .then(response => {
+                console.log("response");
+                if (response.ok) {
+                  console.log('Website loaded successfully');
+                  wordSolve();
+                } else {
+                  console.log(`Error loading website: ${response.status}`);
+                  // Add your series of steps here for handling the error
+                }
+              })
+              .catch(error => {
+                console.error('Error loading website:', error);
+                // Add your series of steps here for handling the error
+              });
+        }
+    }
+
+    function wordSolve() {
+        document.getElementById('wordArea').classList.add('solved');
+        confetti({
+          particleCount: 200,
+          spread: 100,
+          origin: { y: 0.8 }
+        });
+    }
+
+    function unSolve() {
+        document.getElementById('wordArea').classList.remove('solved');
+    }
+
+    function removeItem(arr, item) {
+        index = arr.indexOf(item);
+        if (index > -1) {
+            arr.splice(index, 1);
+        }
+        return arr;
+    }
+
+    function removeIndex(arr, index) {
+        if (index > -1) {
+            arr.splice(index, 1);
+        }
+        return arr;
+    }
+
+    createGrid();
+    </script>
+</body>
+
+</html>
