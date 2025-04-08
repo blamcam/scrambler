@@ -234,11 +234,6 @@
     <script>
     let letters = ['A', 'A', 'R', 'D', 'V', 'A', 'R', 'K', 'S'];
 
-    if (localStorage.getItem("scrambler") != null && localStorage.getItem("scrambler").length == 9) {
-        letters = localStorage.getItem("scrambler").split('');
-        document.getElementById('letterInput').value = localStorage.getItem("scrambler");
-    }
-
     let usedLetters = [];
 
     function createGrid() {
@@ -308,9 +303,10 @@
     function setLetters() {
         const input = document.getElementById('letterInput').value.toUpperCase();
         if (input.length === 9) {
-            localStorage.setItem("scrambler", input);
             letters = input.split('');
             usedLetters = [];
+            updateLocalStorage();
+            updateURL();
             createGrid();
             resetWord();
         } else {
@@ -365,6 +361,43 @@
         }
         return arr;
     }
+
+    function checkLocalStorage() {
+        if (localStorage.getItem("scrambler") != null && localStorage.getItem("scrambler").length == 9) {
+            letters = localStorage.getItem("scrambler").split('');
+            document.getElementById('letterInput').value = localStorage.getItem("scrambler");
+        }
+    }
+
+    function updateLocalStorage() {
+        localStorage.setItem("scrambler", letters.join('') );
+    }
+
+    function checkURLParams() {
+        const queryString = window.location.search;
+        const urlParams = new URLSearchParams(queryString);
+        if (!urlParams.has('letters')) return;
+        const urlLetters = urlParams.get('letters');
+
+        if (urlLetters.length != 9) return;
+
+        letters = urlLetters.split('');
+        document.getElementById('letterInput').value = letters.join('');
+        updateLocalStorage();
+    }
+
+    function resetURL() {
+        history.pushState({}, null, location.href.replace(location.search, ''));
+    }
+
+    function updateURL() {
+        resetURL();
+        history.pushState({}, null, location.href + '?letters=' + letters.join(''));
+    }
+
+    checkLocalStorage();
+    checkURLParams();
+    updateURL();
 
     createGrid();
     </script>
